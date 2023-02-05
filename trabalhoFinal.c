@@ -440,9 +440,18 @@ User* quemEhOPerfilMaisAmigo(Lista *listaUser){
     }
 // vet[0] == id 1
 // vet[1] == id 2
-    
-
-
+    int maior = *(vet);
+    int indice=0;
+    User *usuarioMaisAmigo;
+    for(int i=1; i<numUsuarios; i++){
+        if(maior < *(vet+i)){
+            maior = *(vet+i);
+            indice = i;
+        }
+    }
+    indice++;
+    usuarioMaisAmigo = buscarPorId(listaUser, indice);
+    return usuarioMaisAmigo;
 
 }
 
@@ -493,8 +502,12 @@ int main(){
 
     mostraAmigos(&minhaLista);
 
-    quemEhOPerfilMaisAmigo(&minhaLista);
+/*
+    User *testando;
+    testando = quemEhOPerfilMaisAmigo(&minhaLista);
 
+    printf("%d\n", testando->perfilDoUsuario->id);
+*/
 
     return 0;
 }
