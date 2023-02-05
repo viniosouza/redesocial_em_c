@@ -99,7 +99,7 @@ void desalocaUser(User *userRemov){
     free(userRemov->perfilDoUsuario->nome);
     free(userRemov->perfilDoUsuario);
     free(userRemov->listaDeAmigos);
-    //free(userRemov->amigosPendentes);
+    free(userRemov->amigosPendentes);
     free(userRemov);
 }
 
@@ -231,7 +231,7 @@ void solicitarAmizade(Lista *listaUser, int idPerfilSolicitante, int idPerfilAmi
                 aux = aux->proximoUser;
             }
         }
-        el
+        else
             printf("nao pode pedir amizade para voce mesmo");
     }
     else
@@ -284,7 +284,7 @@ void mostraAmigos(Lista *lista){
             }
         }
         else{
-            printf("Nao tem amigos");
+            printf("Nao tem amigos\n");
         }
         aux = aux->proximoUser;
     }
@@ -300,14 +300,13 @@ filaReq* removerFila(filaReq **fila){
         *fila = remover->proximo;
     }
     else
-        printf("lista vazia");
+        printf("lista vazia\n");
     return remover;
 }
 
 
 void aceitarPrimeiraSolicitacaoAmizade(Lista *listaUser, int idPerfil){      // nao sei como usar a struct Lista, e nao sei se crio nova funcao para alocar ou uso a existente
     User *aux_perfil, *aux_perfil_amigo, *novoAmigo;
-    //Lista novaListaAmigo;
     filaReq *aux_pendente;
 
     aux_perfil = buscarPorId(listaUser, idPerfil);
@@ -315,69 +314,97 @@ void aceitarPrimeiraSolicitacaoAmizade(Lista *listaUser, int idPerfil){      // 
         aux_pendente = removerFila(&aux_perfil->amigosPendentes);
         if(aux_pendente != NULL){
             aux_perfil_amigo = buscarPorId(listaUser, aux_pendente->id);
+            free(aux_pendente);
+        //  libero a memoria do elemento removido da fila de pendentes
             if(aux_perfil->listaDeAmigos == NULL){
-                //Lista listaAmigos;
-                //listaAmigos.inicio = NULL;
-                novoAmigo = (User*)malloc(sizeof(User));
-                novoAmigo->perfilDoUsuario = (Perfil*)malloc(sizeof(Perfil));
-                novoAmigo->perfilDoUsuario->nome = (char*)malloc(sizeof(char)*30);
+                if((alocaUser(&novoAmigo)) != 0)printf("erro de alocacao");
                 novoAmigo->proximoUser = NULL;
                 novoAmigo->perfilDoUsuario->id = aux_perfil_amigo->perfilDoUsuario->id;
                 strcpy(novoAmigo->perfilDoUsuario->nome, aux_perfil_amigo->perfilDoUsuario->nome);
                 aux_perfil->listaDeAmigos = novoAmigo;
-
             }
             else{
-
-                novoAmigo = (User*)malloc(sizeof(User));
-                novoAmigo->perfilDoUsuario = (Perfil*)malloc(sizeof(Perfil));
-                novoAmigo->perfilDoUsuario->nome = (char*)malloc(sizeof(char)*30);
+                if((alocaUser(&novoAmigo)) != 0)printf("erro de alocacao");
                 novoAmigo->proximoUser = NULL;
                 novoAmigo->perfilDoUsuario->id = aux_perfil_amigo->perfilDoUsuario->id;
                 strcpy(novoAmigo->perfilDoUsuario->nome, aux_perfil_amigo->perfilDoUsuario->nome);
 
                 User *temp;
                 temp = aux_perfil->listaDeAmigos;
+                // temp recebe o primeiro elemento da listaAmigos e ao final do while recebe o ultimo endreço da lista
                 while(temp->proximoUser != NULL) temp = temp->proximoUser;
                 temp->proximoUser = novoAmigo;
-
             }
         }
     }
     else{
-        printf("o id nao existe");
+        printf("o id nao existe\n");
     }
 }
 
 void aceitarTodasSolicitacaoAmizade(Lista *listaUser, int idPerfil){
-    User *aux_perfil, *aux;
-    filaReq *aux_pendente;
-
+    User *aux_perfil;
     aux_perfil = buscarPorId(listaUser, idPerfil);
-    if(aux_perfil != NULL){ // verifica se existe o perfil na lista
-        if(aux_perfil->listaDeAmigos != NULL){
-            aux = aux_perfil;
-            while(aux->listaDeAmigos != NULL){
-                aceitarPrimeiraSolicitacaoAmizade(aux_perfil, idPerfil);
+    if(aux_perfil->amigosPendentes != NULL){
+    // verifica se o perfil possui amizades pendentes
+        while(aux_perfil->amigosPendentes != NULL){
 
-
-
-                aux->listaDeAmigos = aux->listaDeAmigos->proximoUser;
-            }
-
-        }
-        else{
-            printf("o usuario nao tem amigos pendentes");
+        aceitarPrimeiraSolicitacaoAmizade(listaUser, idPerfil);
+    //  O aux->amigosPendentes é modificado pela funcao acima
+    //
         }
     }
     else{
-        printf("o usuario nao existe");
+        printf("O perfil nao tem amizades pendentes\n");
+    }
+}
+
+void rejeitarPrimeiraSolicitacaoAmizade(Lista *listaUser, int idPerfil){
+    User *aux_perfil;
+    filaReq *aux_pendente;
+
+    aux_perfil = buscarPorId(listaUser, idPerfil);
+
+    if(aux_perfil != NULL){
+        aux_pendente = removerFila(&aux_perfil->amigosPendentes);
+        free(aux_pendente);
+    }
+}
+
+void rejeitarTodasSolicitacaoAmizade(Lista *listaUser, int idPerfil){
+    User *aux_perfil;
+
+    aux_perfil = buscarPorId(listaUser, idPerfil);
+    if(aux_perfil != NULL){
+        while(aux_perfil->amigosPendentes != NULL){
+            rejeitarPrimeiraSolicitacaoAmizade(listaUser, idPerfil);
+        }
+    }
+}
+
+int numAmigos(Lista *listaUser, int idPerfil){
+    User *aux_perfil, *listaAmigo;
+    int amigos=0;
+    aux_perfil = buscarPorId(listaUser, idPerfil);
+    if(aux_perfil != NULL){
+        listaAmigo = aux_perfil->listaDeAmigos;
+        while(listaAmigo != NULL){
+            amigos++;
+            listaAmigo = listaAmigo->proximoUser;
+        }
+        return amigos;
     }
 }
 
 
 
 
+
+User* quemEhOPerfilMaisAmigo(Lista *listaUser){
+
+
+
+}
 
 
 
@@ -416,14 +443,17 @@ int main(){
 
     solicitarAmizade(&minhaLista, 1, 3);
 
-    //mostraFila(&minhaLista);
 
     aceitarPrimeiraSolicitacaoAmizade(&minhaLista, 2);
-    aceitarPrimeiraSolicitacaoAmizade(&minhaLista, 2);
+    //rejeitarPrimeiraSolicitacaoAmizade(&minhaLista, 2);
+    aceitarPrimeiraSolicitacaoAmizade(&minhaLista, 3);
+    //rejeitarTodasSolicitacaoAmizade(&minhaLista, 2);
 
     //mostraFila(&minhaLista);
+
 
     mostraAmigos(&minhaLista);
+
 
     return 0;
 }
