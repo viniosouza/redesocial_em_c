@@ -3,7 +3,7 @@
 #include<string.h>
 
 struct filaRequisicoes{
-    int id;                    //identificaçăo do usuário;
+    int id;               
     struct filaRequisicoes *proximo;
 
 };
@@ -32,9 +32,7 @@ int alocaUser(User **novo){
     if(((*novo) = (User*)malloc(sizeof(User))) == NULL)return -1;
     if(((*novo)->perfilDoUsuario = (Perfil*)malloc(sizeof(Perfil))) == NULL)return -1;
     if(((*novo)->perfilDoUsuario->nome = (char*)malloc(sizeof(char)*30)) == NULL)return -1;
-    //if(((*novo)->listaDeAmigos = (User*)malloc(sizeof(User))) == NULL)return -1;
     (*novo)->listaDeAmigos = NULL;
-    //if(((*novo)->amigosPendentes = (filaReq*)malloc(sizeof(filaReq))) == NULL)return -1;
     (*novo)->amigosPendentes = NULL;
     return 0;
 }
@@ -305,7 +303,7 @@ filaReq* removerFila(filaReq **fila){
 }
 
 
-void aceitarPrimeiraSolicitacaoAmizade(Lista *listaUser, int idPerfil){      // nao sei como usar a struct Lista, e nao sei se crio nova funcao para alocar ou uso a existente
+void aceitarPrimeiraSolicitacaoAmizade(Lista *listaUser, int idPerfil){
     User *aux_perfil, *aux_perfil_amigo, *novoAmigo;
     filaReq *aux_pendente;
 
@@ -351,7 +349,6 @@ void aceitarTodasSolicitacaoAmizade(Lista *listaUser, int idPerfil){
 
         aceitarPrimeiraSolicitacaoAmizade(listaUser, idPerfil);
     //  O aux->amigosPendentes é modificado pela funcao acima
-    //
         }
     }
     else{
@@ -368,6 +365,7 @@ void rejeitarPrimeiraSolicitacaoAmizade(Lista *listaUser, int idPerfil){
     if(aux_perfil != NULL){
         aux_pendente = removerFila(&aux_perfil->amigosPendentes);
         free(aux_pendente);
+    //  libera a memoria alocada do elemento removida da fila
     }
 }
 
@@ -383,24 +381,66 @@ void rejeitarTodasSolicitacaoAmizade(Lista *listaUser, int idPerfil){
 }
 
 int numAmigos(Lista *listaUser, int idPerfil){
-    User *aux_perfil, *listaAmigo;
+    User *aux_perfil, *listaAmigos;
     int amigos=0;
     aux_perfil = buscarPorId(listaUser, idPerfil);
     if(aux_perfil != NULL){
-        listaAmigo = aux_perfil->listaDeAmigos;
-        while(listaAmigo != NULL){
+        listaAmigos = aux_perfil->listaDeAmigos;
+        while(listaAmigos != NULL){
             amigos++;
-            listaAmigo = listaAmigo->proximoUser;
+            listaAmigos = listaAmigos->proximoUser;
         }
         return amigos;
     }
 }
 
+int numUsers(Lista *listaUser){
+    User *aux;
+    int numUsuarios=0;
+    aux = listaUser->inicio;
+    while(aux != NULL){
+        numUsuarios++;
+        aux = aux->proximoUser;
+    }
+    return numUsuarios;
+}
 
-
-
+int numSolicitacoesAmigos(Lista *listaUser, int idPerfil){
+    User *aux_perfil;
+    filaReq *aux_pendente;
+    int numAmigosPendentes=0;
+    aux_perfil = buscarPorId(listaUser, idPerfil);
+    if(aux_perfil != NULL){
+        aux_pendente = aux_perfil->amigosPendentes;
+        while(aux_pendente != NULL){
+            numAmigosPendentes++;
+            aux_pendente = aux_pendente->proximo;
+        }
+        return numAmigosPendentes;
+    }
+}
 
 User* quemEhOPerfilMaisAmigo(Lista *listaUser){
+    User *aux_perfil, *listaAmigosPerfil;
+    int numUsuarios = numUsers(listaUser);
+    int *vet;
+    aux_perfil = listaUser->inicio;
+    vet = (int*)calloc(numUsuarios, sizeof(int));
+    while(aux_perfil != NULL){
+        listaAmigosPerfil = aux_perfil->listaDeAmigos;
+        while(listaAmigosPerfil != NULL){
+            for(int i=1; i<=numUsuarios; i++){  
+                if(listaAmigosPerfil->perfilDoUsuario->id == i){
+                    *(vet+i-1) = *(vet+i-1) + 1;
+                }
+            }
+            listaAmigosPerfil = listaAmigosPerfil->proximoUser;
+        }
+        aux_perfil = aux_perfil->proximoUser;
+    }
+// vet[0] == id 1
+// vet[1] == id 2
+    
 
 
 
@@ -437,22 +477,23 @@ int main(){
 
     mostra(&minhaLista);
 
-    solicitarAmizade(&minhaLista, 1, 2);
+    //solicitarAmizade(&minhaLista, 1, 2);
 
-    solicitarAmizade(&minhaLista, 3, 2);
+    //solicitarAmizade(&minhaLista, 3, 2);
 
-    solicitarAmizade(&minhaLista, 1, 3);
+    //solicitarAmizade(&minhaLista, 1, 3);
 
+    solicitarAmizade(&minhaLista, 2, 1);
 
-    aceitarPrimeiraSolicitacaoAmizade(&minhaLista, 2);
-    rejeitarPrimeiraSolicitacaoAmizade(&minhaLista, 2);
-    aceitarPrimeiraSolicitacaoAmizade(&minhaLista, 3);
-    rejeitarTodasSolicitacaoAmizade(&minhaLista, 2);
-
-    //mostraFila(&minhaLista);
-
+    //aceitarPrimeiraSolicitacaoAmizade(&minhaLista, 2);
+    //aceitarPrimeiraSolicitacaoAmizade(&minhaLista, 2);
+    //rejeitarPrimeiraSolicitacaoAmizade(&minhaLista, 2);
+    //aceitarPrimeiraSolicitacaoAmizade(&minhaLista, 3);
+    aceitarPrimeiraSolicitacaoAmizade(&minhaLista, 1);
 
     mostraAmigos(&minhaLista);
+
+    quemEhOPerfilMaisAmigo(&minhaLista);
 
 
     return 0;
