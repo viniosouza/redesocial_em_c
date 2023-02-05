@@ -447,7 +447,7 @@ int main(){
     aceitarPrimeiraSolicitacaoAmizade(&minhaLista, 2);
     //rejeitarPrimeiraSolicitacaoAmizade(&minhaLista, 2);
     aceitarPrimeiraSolicitacaoAmizade(&minhaLista, 3);
-    //rejeitarTodasSolicitacaoAmizade(&minhaLista, 2);
+    rejeitarTodasSolicitacaoAmizade(&minhaLista, 2);
 
     //mostraFila(&minhaLista);
 
